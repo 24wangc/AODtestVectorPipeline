@@ -1,0 +1,27 @@
+AOD to ROOT
+    100 events: 0.0209 s/event, 0.191 s file writing time
+    100 events procesing total: 2.109 s
+    1000 events: 0.0044 s/event, 0.393 s file writing time
+    1000 events processing total: 4.429 s
+ROOT to test vector
+    100 events: 0.482 s
+    1000 events: 2.73 s
+
+Root file size:
+    100 events: 3.2 M
+    1000 events: 30 M
+    
+
+AOD to HDF5
+    100 events: 0.0194 s/event, 0.0380 s file writing time
+    100 events processing total: 1.962 s
+    1000 events: 0.0031 s/event, 0.0917 s file writing time
+    1000 events processing total: 3.096 s
+HDF5 to test vector:
+    100 events: 0.439 s
+    1000 events: 2.951 s
+
+
+HDF5 file size:
+    100 events: 4.7 M
+    1000 events: 45 M
