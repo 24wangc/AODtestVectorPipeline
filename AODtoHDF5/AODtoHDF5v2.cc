@@ -24,6 +24,7 @@ the collections and data retrieval
 #include "TH2F.h"
 #include <functional>
 #include <limits>
+#include "../analysisHelperFunctions.h"
 using std::string;
 using std::cout;
 using std::cerr;

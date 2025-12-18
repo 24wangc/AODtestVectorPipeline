@@ -16,6 +16,17 @@
 #include <unordered_map>
 //#include "../algorithm/constants.h"
 
+// added LATER
+#include "TGraph.h"
+#include "TGraphErrors.h"
+#include "TEllipse.h"
+#include "TLatex.h"
+#include "TString.h"   // you also use TString
+#include "TCanvas.h"   // if you use it in that header
+#include "TLegend.h"   // if you use it in that header
+#include "TStyle.h"    // if you use gStyle etc.
+#include "TLegendEntry.h"
+
 // ---------- Data container for one event ----------
 struct EventDisplayInputs {
   TH2* heatmap = nullptr;  // e.g. sigTopo422Highest128SeedPositionsEvX
