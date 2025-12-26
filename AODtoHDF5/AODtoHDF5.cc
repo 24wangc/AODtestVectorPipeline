@@ -1,7 +1,6 @@
 /**
-This is the current working version of AOD to HDF5. Things are
-all still hardcoded
-12/03/2025
+This is the old version of AOD to HDF5. Things are all hardcoded and have since been fixed
+12/26/2025
  */
 // To execute: e.g., root ; .L nTupler.C ; nTupler(true, true, true) 
 #include <algorithm>
