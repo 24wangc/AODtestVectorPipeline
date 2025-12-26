@@ -1,6 +1,7 @@
 /**
-This is a not fully completed version of AOD to HDF5. Attempting to un-harcode
-the collections and data retrieval
+This is the current working version of AOD to HDF5. Employes templated functions and requires only changes in lines 281 and 307
+to customize collections
+12/26/2025
  */
 
 // To execute: e.g., root ; .L nTupler.C ; nTupler(true, true, true) 
