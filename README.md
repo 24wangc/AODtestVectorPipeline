@@ -1,5 +1,9 @@
-# Test Vector Pipeline
-Current pipeline: ATLAS AOD → HDF5 (or ROOT) → text Test Vector
+# Test Vector Pipeline Overview
+Current pipeline supports the following workflows: 
+
+ATLAS AOD -> HDF5 -> text Test Vector
+
+ATLAS AOD -> ROOT -> text Test Vector
 
 This repository contains a modular data-processing pipeline for converting ATLAS AOD files into text file test vectors, with a focus on producing standardized, configurable test vectors for fast algorithm development and validation.
 
@@ -9,7 +13,7 @@ Requirements:
 - HDF5 (C++ bindings)
 - C++17 compiler
 
-### Setup ATLAS:
+### Setup ATLAS environment:
 ```
 export ATLAS_LOCAL_ROOT_BASE=/cvmfs/atlas.cern.ch/repo/ATLASLocalRootBase
 alias setupATLAS='source ${ATLAS_LOCAL_ROOT_BASE}/user/atlasLocalSetup.sh'
@@ -19,7 +23,8 @@ asetup AnalysisBase,25.2.29
 
 ### Configuring and running the HDF5er:
 Choose desired collections and variables (double and unsigned int types) in lines 285 - 307
-Set variable definitions in lines 311 - 368 (the goal is to make these selections in a configuration file)
+
+Set variable definitions in lines 311 - 368
 
 Run in root:
 ```
@@ -36,3 +41,10 @@ root
 .L HDF5toTestVector.cc
 HDF5toTestVector(h5filepath)
 ```
+This produces the final test vector files.
+
+## Note:
+This pipeline is actively evolving. Further steps include:
+- moving customizations to a configuration file to avoid users needing to modify source code
+- implementing selection of events in the intermediate file to test vector stage (ex. only events above a threshold Et value)
+- supporting a variety of input formats including raw HDF5, HEPMC, LHE, TTree
