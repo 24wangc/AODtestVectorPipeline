@@ -29,6 +29,8 @@ Set variable definitions in lines 311 - 368
 Run in root:
 ```
 root
+gSystem->Load("libxAODRootAccess");
+xAOD::Init().ignore();
 .L AODtoHDF5v2.cc
 HDF5er(true, true, 3)
 ```
