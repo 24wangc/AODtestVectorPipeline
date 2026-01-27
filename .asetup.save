@@ -7,8 +7,8 @@ export ASETUP_PRINTLEVEL="0"
 export BINARY_TAG="x86_64-el9-gcc13-opt"
 export CMTCONFIG="x86_64-el9-gcc13-opt"
 if [ -z "${AtlasSetup:+x}" ]; then
-    export AtlasSetup="/cvmfs/atlas.cern.ch/repo/ATLASLocalRootBase/x86_64/AtlasSetup/V03-01-25/AtlasSetup"
-    export AtlasSetupVersion="AtlasSetup-03-01-25"
+    export AtlasSetup="/cvmfs/atlas.cern.ch/repo/ATLASLocalRootBase/x86_64/AtlasSetup/V03-01-27/AtlasSetup"
+    export AtlasSetupVersion="AtlasSetup-03-01-27"
 fi
 
 if [ -d /tmp/crystalwang ]; then
@@ -44,7 +44,9 @@ if [ -z "${FC:+x}" ]; then
     [[ -z "$FC" ]] && unset FC
 fi
 export CMAKE_NO_VERBOSE="1"
-export CMAKE_BUILD_PARALLEL_LEVEL="96"
+if [ -z "${CMAKE_BUILD_PARALLEL_LEVEL:+x}" ]; then
+    export CMAKE_BUILD_PARALLEL_LEVEL="96"
+fi
 type lsetup &>/dev/null
 if [ $? -ne 0 ]; then
    if [ -z "$ATLAS_LOCAL_ROOT_BASE" ]; then

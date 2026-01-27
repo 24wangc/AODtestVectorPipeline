@@ -25,7 +25,7 @@ to customize collections
 #include "TH2F.h"
 #include <functional>
 #include <limits>
-#include "../analysisHelperFunctions.h"
+// #include "../analysisHelperFunctions.h"
 using std::string;
 using std::cout;
 using std::cerr;
@@ -102,7 +102,6 @@ void write_vector(H5::H5File& file, const string& path, const std::vector<T>& da
 }
 
 //jagged array structure to deal with awkward arrays
-//LEARN
 struct JaggedOffsets {
     std::vector<int> offsets;
     void endEvent(size_t currentSize) {
@@ -111,7 +110,12 @@ struct JaggedOffsets {
 };
 
 // create a structure to store collection information
-// name will be the collection, will store map of kinematic variables
+/**
+name: collection/container name
+double_vectors: list of the names of the desired double variables (et, eta, phi)
+kinematics: maps the variable names to the actual data vectors
+offsets: stores the offsets
+ */
 struct JetCollection {
     std::string name;
 
@@ -159,15 +163,15 @@ struct JetCollection {
     }
 };
 
-// Push the information into the JetCollection for one event
-// VarGetter is a function that retrieves the desired bariable value
+// Retrieves the desired variable value (different collections define/store variables differently)
+// TODO: get this info from a config file
 template <typename ObjT>
 using VarGetter = std::function<double(const ObjT* obj, const std::string& var)>;
 
-// fill one event into JetCollection
+// fill the collection of one event into the corresponding JetCollection
 template<typename Container, typename ObjT>
 void fillJetCollectionOneEvent(const Container* collection, JetCollection& jc, VarGetter<ObjT> getVar) {
-    // check if collection
+    // check if collection exists
     if(!collection) {
         jc.offsets.endEvent(jc.kinematics.at("Et").size());
         return;
@@ -178,26 +182,23 @@ void fillJetCollectionOneEvent(const Container* collection, JetCollection& jc, V
         const ObjT* obj = (*collection)[i];
         if (!obj) continue;
 
+        // store the EtIndex in the indices map
         jc.indices["EtIndex"].push_back(static_cast<unsigned int>(i));
         
-        // fill requested doubles like Et, Eta, and Phi
+        // fill requested doubles like Et, Eta, and Phi into the kinematics map
         for (const auto& vname : jc.double_vectors) {
             jc.kinematics[vname].push_back(getVar(obj, vname));
         }
     }
 
+    // store the offsets
     jc.offsets.endEvent(jc.kinematics["Et"].size());
 }
 
 // retrieve the collection from the event and fill it to the jetcollection structure
 template<typename Container, typename ObjT>
-void retrieveAndFill(
-    xAOD::TEvent& event,
-    const std::string& key,
-    JetCollection& jc,
-    VarGetter<ObjT> getVar
-) {
-    // retrieve colletion
+void retrieveAndFill(xAOD::TEvent& event, const std::string& key, JetCollection& jc, VarGetter<ObjT> getVar) {
+    // retrieve collection
     const Container* cont = nullptr;
     if (!event.retrieve(cont, key).isSuccess()) {
         cont = nullptr; // treat as missing
@@ -224,21 +225,18 @@ void find_non_higgs_daughters(const xAOD::TruthParticle* particle,
     }
 }
 
-
 // create groups and write jet collection to h5 file
 void writeJetCollection(H5::H5File& h5, const JetCollection& jc) {
     const std::string base = "/" + jc.name;
 
     // create the base group for the collection
     auto safe_create = [&](const std::string& path) {
-        try {
+        if (!H5Lexists(h5.getId(), path.c_str(), H5P_DEFAULT)) {
             h5.createGroup(path);
-        } catch (H5::Exception&) {
-            // already exists → ignore
         }
     };
 
-    // create the offsets
+    // create the offsets dataset
     safe_create(base);
     safe_create(base + "/Et");
     write_vector(h5, base + "/Et/offsets", jc.offsets.offsets);
@@ -425,6 +423,7 @@ void HDF5er(bool vbfBool, bool signalBool, int jzSlice) {
 
             event.getEntry(iEvt);               // DAOD event iEvt
 
+            // retrieve the collections and fill into the corresponding jet collections
             // L1Calo jets vectors
             retrieveAndFill<xAOD::gFexJetRoIContainer, xAOD::gFexJetRoI>(
                 event, "L1_gFexSRJetRoI", jc_gFEXSRJ, get_gfex);
@@ -462,7 +461,7 @@ void HDF5er(bool vbfBool, bool signalBool, int jzSlice) {
     } // loop through filenames
 
     // get the H5 file
-    H5::H5File h5("/data/crystalwang/testVectorPipeline/testData/outputHDF5Files/exampleHDF5.h5", H5F_ACC_TRUNC);
+    H5::H5File h5("/data/crystalwang/testVectorPipeline/testData/outputHDF5Files/exampleHDF5v2.h5", H5F_ACC_TRUNC);
 
     // Write all jet collections
     for(const JetCollection* jc : jetCollections) {

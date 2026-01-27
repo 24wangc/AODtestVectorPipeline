@@ -12,11 +12,20 @@ Root file size:
     1000 events: 30 M
     
 
-AOD to HDF5
+AOD to HDF5 C++
     100 events: 0.0194 s/event, 0.0380 s file writing time
     100 events processing total: 1.962 s
     1000 events: 0.0031 s/event, 0.0917 s file writing time
     1000 events processing total: 3.096 s
+
+AOD to HDF5 Python
+    100 events: 0.5298 s/event, 0.8156 s file writing time
+    100 events processing total: 52.976 s
+    1000 events: 0.1194 s/event, 3.1889 s file writing time
+    1000 events processing total: 119.415 s
+    10000 events: 0.02809 s/event, 3.569 s file writing time
+    10000 events processing total: 280.846 
+
 HDF5 to test vector:
     100 events: 0.439 s
     1000 events: 2.951 s

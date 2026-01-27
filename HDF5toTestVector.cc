@@ -83,7 +83,8 @@ const double sumOfEventWeightsByJZSlice[nJZSlices] = {10000.0,                //
 
 // Helper to construct memprint / test vector filenames
 inline OutputFiles makeMemPrintFilenames(bool signalBool, bool vbfBool, int jzSlice) {
-    static const std::string base = "/data/crystalwang/testVectorPipeline/testData/testVectorsHDF5";
+    // --- CONFIGURABLE ---
+    static const std::string base = "/data/crystalwang/testVectorPipeline/testData/testVectorsHDF5py";
 
     // ensure subdirs exist
     namespace fs = std::filesystem;
@@ -283,23 +284,30 @@ void HDF5toTestVector(const std::string& h5filePath) {
     H5::H5File file(h5filePath, H5F_ACC_RDONLY);
 
     // Read the four collections that correspond to your test-vector outputs
-    CollJagged calo  = readCollection(file, "CaloTopoTowers");
-    CollJagged topo  = readCollection(file, "topo422");
+    // FOR NOW
+    // CollJagged calo  = readCollection(file, "CaloTopoTowers");
+    // CollJagged topo  = readCollection(file, "topo422");
     CollJagged gfex  = readCollection(file, "gFEXSRJ");
-    CollJagged jfex  = readCollection(file, "jFEXSRJ");
+    // CollJagged jfex  = readCollection(file, "jFEXSRJ");
 
     // set the number of events
-    size_t nEvt = calo.nEvents();
-    if (topo.nEvents() != nEvt || gfex.nEvents() != nEvt || jfex.nEvents() != nEvt) {
-        throw std::runtime_error("Collections have different nEvents in HDF5 file");
-    }
+    // size_t nEvt = calo.nEvents();
+    // if (topo.nEvents() != nEvt || gfex.nEvents() != nEvt || jfex.nEvents() != nEvt) {
+    //    throw std::runtime_error("Collections have different nEvents in HDF5 file");
+    //}
+    
+    // FOR NOW
+    size_t nEvt = gfex.nEvents();
+    // if (gfex.nEvents() != nEvt || jfex.nEvents() != nEvt) {
+    //     throw std::runtime_error("Collections have different nEvents in HDF5 file");
+    //}
 
     OutputFiles outNames = makeMemPrintFilenames(true, true, 3);
 
-    std::ofstream f_calo(outNames.caloTopoTowers);
-    std::ofstream f_topo(outNames.topo422);
+    // std::ofstream f_calo(outNames.caloTopoTowers);
+    // std::ofstream f_topo(outNames.topo422);
     std::ofstream f_gfex(outNames.gFex);
-    std::ofstream f_jfex(outNames.jFex);
+    // std::ofstream f_jfex(outNames.jFex);
 
     // for each event
     for (size_t iEvt = 0; iEvt < nEvt; ++iEvt) {
@@ -307,22 +315,22 @@ void HDF5toTestVector(const std::string& h5filePath) {
         totalEventsLooped++;
 
         // get the event of that index
-        singleEvent caloEvt = makeEventColl(calo, iEvt);
-        singleEvent topoEvt = makeEventColl(topo, iEvt);
+        // singleEvent caloEvt = makeEventColl(calo, iEvt);
+        // singleEvent topoEvt = makeEventColl(topo, iEvt);
         singleEvent gfexEvt = makeEventColl(gfex, iEvt);
-        singleEvent jfexEvt = makeEventColl(jfex, iEvt);
+        // singleEvent jfexEvt = makeEventColl(jfex, iEvt);
 
         // write the test vectors
-        writeTestVectors(f_calo, static_cast<Long64_t>(iEvt), caloEvt);
-        writeTestVectors(f_topo, static_cast<Long64_t>(iEvt), topoEvt);
+        // writeTestVectors(f_calo, static_cast<Long64_t>(iEvt), caloEvt);
+        // writeTestVectors(f_topo, static_cast<Long64_t>(iEvt), topoEvt);
         writeTestVectors(f_gfex, static_cast<Long64_t>(iEvt), gfexEvt);
-        writeTestVectors(f_jfex, static_cast<Long64_t>(iEvt), jfexEvt);
+        // writeTestVectors(f_jfex, static_cast<Long64_t>(iEvt), jfexEvt);
 
         // clear the data
-        clearEvent(caloEvt);
-        clearEvent(topoEvt);
+        // clearEvent(caloEvt);
+        // clearEvent(topoEvt);
         clearEvent(gfexEvt);
-        clearEvent(jfexEvt);
+        // clearEvent(jfexEvt);
     }
 
         // --- End of event processing timing ---
