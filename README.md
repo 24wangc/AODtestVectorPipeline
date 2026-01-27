@@ -35,6 +35,14 @@ HDF5er(true, true, 3)
 
 This produces intermediate HDF5 files.
 
+### Configuring and running the Python HDF5er:
+Edit config.yaml with desired collections, variables, and getter functions
+Note: all collections *must* have Et as a double_variable for storage of offsets
+run in terminal
+```
+python3 AODtoHDF5.py
+```
+
 ### Running writeTestVectors:
 ```
 root
@@ -45,6 +53,5 @@ This produces the final test vector files.
 
 ## Note:
 This pipeline is actively evolving. Further steps include:
-- moving customizations to a configuration file to avoid users needing to modify source code
 - implementing selection of events in the intermediate file to test vector stage (ex. only events above a threshold Et value)
 - supporting a variety of input formats including raw HDF5, HEPMC, LHE, TTree

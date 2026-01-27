@@ -1,0 +1,26 @@
+io:
+  root_file: /data/crystalwang/testVectorPipeline/testData/DAOD_TrigGepPerf/Signal_HHbbbb_VBF/DAOD_JETM42.SIGNAL_HHBBBB_VBF_DAOD_JETM42.root
+  out_h5: /data/crystalwang/testVectorPipeline/testData/outputHDF5Files/pythonHDF5.h5
+  tree_name: CollectionTree
+
+run:
+  max_events: 1000
+
+collections:
+  - name: gFEXSRJ
+    key: L1_gFexSRJetRoI
+    getter: gfex
+    double_vars: [Et, Eta, Phi]
+    int_vars: [EtIndex]
+
+  - name: HLTJets
+    key: HLT_AntiKt4EMTopoJets_subjesIS
+    getter: hlt_jet
+    double_vars: [Et, Eta, Phi]
+    int_vars: [EtIndex]
+
+  - name: RecoAK10
+    key: AntiKt10UFOCSSKJets
+    getter: reco_ak10
+    double_vars: [Et, Eta, Phi, Mass]
+    int_vars: [EtIndex]
