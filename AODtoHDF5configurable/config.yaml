@@ -4,12 +4,18 @@ io:
   tree_name: CollectionTree
 
 run:
-  max_events: 1000
+  max_events: 100
 
 collections:
   - name: gFEXSRJ
     key: L1_gFexSRJetRoI
     getter: gfex
+    double_vars: [Et, Eta, Phi]
+    int_vars: [EtIndex]
+
+  - name: jFEXSRJ
+    key: L1_jFexSRJetRoI
+    getter: jfex
     double_vars: [Et, Eta, Phi]
     int_vars: [EtIndex]
 

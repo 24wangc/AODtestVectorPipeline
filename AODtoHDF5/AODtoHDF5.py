@@ -170,8 +170,8 @@ def HDF5er(root_filename: str, out_h5: str, max_events):
     '''
     Convert AOD files into intermediate HDF5 format with jagged offsets
     '''
-    # start timer
-    t_evt_start = time.perf_counter()
+    # start setup timer
+    t_setup_start = time.perf_counter()
 
     # Open ROOT file
     f = ROOT.TFile.Open(root_filename)
@@ -195,6 +195,12 @@ def HDF5er(root_filename: str, out_h5: str, max_events):
         (jc_RecoAK10, "AntiKt10UFOCSSKJets", get_reco_ak10),
     ]
     # --- END CONFIGURABE ---
+
+    # end setup timer
+    t_setup_end = time.perf_counter()
+
+    # start event timer
+    t_evt_start = time.perf_counter()
 
     # Event loop
     for i_evt in range(min(n_entries, max_events)):
@@ -226,10 +232,11 @@ def HDF5er(root_filename: str, out_h5: str, max_events):
     print("\n[Timing] Event processing")
     print(f"  Events processed: {max_events}")
     print(f"  Total time: {evt_total_time:.3f} s")
+    print(f"  Setup time: {t_setup_end - t_setup_start} s")
     print(f"  Avg time/event: {evt_total_time / max_events:.6f} s")
     print(f"  HDF5 writing time: {write_total_time}")
 
 
 root_file = "/data/crystalwang/testVectorPipeline/testData/DAOD_TrigGepPerf/Signal_HHbbbb_VBF/DAOD_JETM42.SIGNAL_HHBBBB_VBF_DAOD_JETM42.root"
 out_h5 = "/data/crystalwang/testVectorPipeline/testData/outputHDF5Files/pythonHDF5.h5"
-HDF5er(root_file, out_h5, 10000)
+HDF5er(root_file, out_h5, 100)

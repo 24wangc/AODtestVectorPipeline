@@ -25,6 +25,7 @@ to customize collections
 #include "TH2F.h"
 #include <functional>
 #include <limits>
+#include <chrono>
 // #include "../analysisHelperFunctions.h"
 using std::string;
 using std::cout;
@@ -388,6 +389,10 @@ void HDF5er(bool vbfBool, bool signalBool, int jzSlice) {
     // loop through file names
     int fileIt = 0;
     unsigned int higgsPassEventCounter = 0;
+    
+    // --- Timing: event processing ---
+    auto tStartProcessing = std::chrono::steady_clock::now();
+    std::size_t totalEventsLooped = 0;   // total events we iterated over (across all files)
 
     for (const auto& fileName : fileNames) {
         fileIt++; 
@@ -417,9 +422,12 @@ void HDF5er(bool vbfBool, bool signalBool, int jzSlice) {
             //std::cout << "iEvt: " << iEvt << "\n";
             // Retrieve truth and in time pileup jets first to apply hard-scatter-softer-than-PU (HSTP) filter (described here: https://twiki.cern.ch/twiki/bin/viewauth/AtlasProtected/JetEtMissMCSamples#Dijet_normalization_procedure_HS)
             // Also require that truth jet collection is not empty
-            if (iEvt > 100) {
+            if (iEvt > 1000) {
                 break;
             }
+
+            // time keeping
+            totalEventsLooped++;
 
             event.getEntry(iEvt);               // DAOD event iEvt
 
@@ -460,6 +468,20 @@ void HDF5er(bool vbfBool, bool signalBool, int jzSlice) {
         f->Close();
     } // loop through filenames
 
+    // --- End of event processing timing ---
+    auto tEndProcessing = std::chrono::steady_clock::now();
+    std::chrono::duration<double> procTime = tEndProcessing - tStartProcessing;
+    double timePerEvent = (totalEventsLooped > 0)
+        ? procTime.count() / static_cast<double>(totalEventsLooped)
+        : 0.0;
+
+    std::cout << "\n[Timing] Event processing total: " << procTime.count() << " s\n"
+              << "[Timing] Events processed (looped over): " << totalEventsLooped << "\n"
+              << "[Timing] Avg time per event: " << timePerEvent << " s/event\n";
+
+    // --- Now time the HDF5 writing separately ---
+    auto tStartWrite = std::chrono::steady_clock::now();
+
     // get the H5 file
     H5::H5File h5("/data/crystalwang/testVectorPipeline/testData/outputHDF5Files/exampleHDF5v2.h5", H5F_ACC_TRUNC);
 
@@ -467,4 +489,11 @@ void HDF5er(bool vbfBool, bool signalBool, int jzSlice) {
     for(const JetCollection* jc : jetCollections) {
         writeJetCollection(h5, *jc);
     }
+    
+    // std::cout << "Wrote HDF5 file: " << outFile << "\n";
+    auto tEndWrite = std::chrono::steady_clock::now();
+    std::chrono::duration<double> writeTime = tEndWrite - tStartWrite;
+
+    std::cout << "[Timing] HDF5 file writing time: "
+              << writeTime.count() << " s\n";
 }

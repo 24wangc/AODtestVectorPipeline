@@ -169,7 +169,7 @@ inline void writeTestVectors(std::ofstream& out, Long64_t iEvt, const singleEven
         unsigned int eta_bin = digitize(eta, eta_bit_length_, eta_min_, eta_max_);
         unsigned int phi_bin = digitize(phi, phi_bit_length_, phi_min_, phi_max_);
 
-        // print these variablese to the output file
+        // print these variables to the output file
         std::stringstream binary_ss;
         binary_ss << std::bitset<et_bit_length_>(et_bin)   << "|"
                   << std::bitset<eta_bit_length_>(eta_bin) << "|"
@@ -288,7 +288,7 @@ void HDF5toTestVector(const std::string& h5filePath) {
     // CollJagged calo  = readCollection(file, "CaloTopoTowers");
     // CollJagged topo  = readCollection(file, "topo422");
     CollJagged gfex  = readCollection(file, "gFEXSRJ");
-    // CollJagged jfex  = readCollection(file, "jFEXSRJ");
+    CollJagged jfex  = readCollection(file, "jFEXSRJ");
 
     // set the number of events
     // size_t nEvt = calo.nEvents();
@@ -298,16 +298,16 @@ void HDF5toTestVector(const std::string& h5filePath) {
     
     // FOR NOW
     size_t nEvt = gfex.nEvents();
-    // if (gfex.nEvents() != nEvt || jfex.nEvents() != nEvt) {
-    //     throw std::runtime_error("Collections have different nEvents in HDF5 file");
-    //}
+    if (gfex.nEvents() != nEvt || jfex.nEvents() != nEvt) {
+         throw std::runtime_error("Collections have different nEvents in HDF5 file");
+    }
 
     OutputFiles outNames = makeMemPrintFilenames(true, true, 3);
 
     // std::ofstream f_calo(outNames.caloTopoTowers);
     // std::ofstream f_topo(outNames.topo422);
     std::ofstream f_gfex(outNames.gFex);
-    // std::ofstream f_jfex(outNames.jFex);
+    std::ofstream f_jfex(outNames.jFex);
 
     // for each event
     for (size_t iEvt = 0; iEvt < nEvt; ++iEvt) {
@@ -318,19 +318,19 @@ void HDF5toTestVector(const std::string& h5filePath) {
         // singleEvent caloEvt = makeEventColl(calo, iEvt);
         // singleEvent topoEvt = makeEventColl(topo, iEvt);
         singleEvent gfexEvt = makeEventColl(gfex, iEvt);
-        // singleEvent jfexEvt = makeEventColl(jfex, iEvt);
+        singleEvent jfexEvt = makeEventColl(jfex, iEvt);
 
         // write the test vectors
         // writeTestVectors(f_calo, static_cast<Long64_t>(iEvt), caloEvt);
         // writeTestVectors(f_topo, static_cast<Long64_t>(iEvt), topoEvt);
         writeTestVectors(f_gfex, static_cast<Long64_t>(iEvt), gfexEvt);
-        // writeTestVectors(f_jfex, static_cast<Long64_t>(iEvt), jfexEvt);
+        writeTestVectors(f_jfex, static_cast<Long64_t>(iEvt), jfexEvt);
 
         // clear the data
         // clearEvent(caloEvt);
         // clearEvent(topoEvt);
         clearEvent(gfexEvt);
-        // clearEvent(jfexEvt);
+        clearEvent(jfexEvt);
     }
 
         // --- End of event processing timing ---

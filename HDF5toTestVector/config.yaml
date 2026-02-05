@@ -1,0 +1,40 @@
+io:
+  # the input hdf5 file produced in the first step
+  input_file: "/data/crystalwang/testVectorPipeline/testData/outputHDF5Files/pythonHDF5.h5"
+  # the directory that the test vectors will be generated to
+  output_base_dir: "/data/crystalwang/testVectorPipeline/testData/testVectorsStep2/"
+
+variables:
+  et:
+    hdf5_key: "Et" # the name the variable is stored as in the hdf5 file
+    bits: 13
+    min: 0.0
+    max: 1024.0
+  eta:
+    hdf5_key: "Eta"
+    bits: 8
+    min: -5.0
+    max: 5.0
+  phi:
+    hdf5_key: "Phi"
+    bits: 6
+    min: -3.2
+    max: 3.2
+
+# Order of variables in the binary string and hex word (MSB -> LSB)
+# Example: Et | Eta | Phi
+packing_order: ["et", "eta", "phi"]
+
+# make sure this matches with the config file in first step 
+collections:
+  - name: gFEXSRJ # ensure this name is the group name in the hdf5 file
+    out_filedir: gFex
+
+  - name: jFEXSRJ
+    out_filedir: jFex
+
+  - name: HLTJets
+    out_filedir: HLT
+
+  - name: RecoAK10
+    out_filedir: Reco

@@ -48,11 +48,21 @@ def get_reco_ak10(obj, v: str) -> float:
         return obj.m() / 1000.0
     raise RuntimeError(f"RecoAK10 unknown var: {v}")
 
+def get_jfex(obj, v: str) -> float:
+    if v == "Et":
+        return obj.et() / 1000.0
+    if v == "Eta":
+        return obj.eta()
+    if v == "Phi":
+        return obj.phi()
+    raise RuntimeError(f"gFEX unknown var: {v}")
+
 # make a registry for the getters
 GETTERS = {
     "gfex": get_gfex,
     "hlt_jet": get_hlt_jet,
-    "reco_ak10": get_reco_ak10
+    "reco_ak10": get_reco_ak10,
+    "jfex": get_jfex
 }
 
 """
