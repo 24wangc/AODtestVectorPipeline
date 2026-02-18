@@ -4,22 +4,33 @@ io:
   # the directory that the test vectors will be generated to
   output_base_dir: "/data/crystalwang/testVectorPipeline/testData/testVectorsStep2/"
 
+random:
+  bool: true
+  n: 30
+  num_particles: 3
+  seed: 12345
+
 variables:
   et:
     hdf5_key: "Et" # the name the variable is stored as in the hdf5 file
     bits: 13
     min: 0.0
     max: 1024.0
+    fixed: 0 # choose fixed options for pseudo random generation: -1 (none) 0 (vector with all zeros) 1 (vector with all ones) 2 (both all ones and all zero)
+
   eta:
     hdf5_key: "Eta"
     bits: 8
     min: -5.0
     max: 5.0
+    fixed: 1
+
   phi:
     hdf5_key: "Phi"
     bits: 6
     min: -3.2
     max: 3.2
+    fixed: 2
 
 # Order of variables in the binary string and hex word (MSB -> LSB)
 # Example: Et | Eta | Phi

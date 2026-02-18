@@ -68,6 +68,80 @@ def read_collection(h5_file, group_name, variable_config):
 
     return CollJagged(data_dict, offsets)
 
+# make random data in the same form as specified in the config file
+def random_collection(rand_config, var_config, seed):
+    rng = np.random.default_rng(seed)
+    num_particles = rand_config["num_particles"]
+    n_events = rand_config["n"]
+
+    offsets = np.arange(0, (n_events + 1) * num_particles, num_particles)
+    total = int(offsets[-1])
+    fixed_num = 0
+
+    data_dict = {}
+
+    # loop through to create all random data for each variable
+    for var_name, cfg in var_config.items():
+        lo, hi = float(cfg["min"]), float(cfg["max"])
+
+        # uniform in the physical range; dtype float32 like typical HDF5 storage
+        data_dict[var_name] = rng.uniform(lo, hi, size=total).astype(np.float32)
+
+    # now overwrite data for the desired fixed data
+    # collect the allowed/desired states for each variable
+    pat_vars = [] # list of variables with fixed values
+    options = [] # list of state options corresponding to the variables
+
+    # for each variable, get the allowed states from the configuration
+    for var_name, cfg in var_config.items():
+        fixed = cfg["fixed"]
+        if fixed == -1:
+            continue
+        elif fixed == 0:
+            opts = [0, -1] # 0 is fully random state, -1 is least
+        elif fixed == 1:
+            opts = [0, 1] # 1 is most
+        elif fixed == 2:
+            opts = [-1, 0, 1]
+        else:
+            raise ValueError(f"{var_name} fixed value must be -1, 0, 1, or 2")
+
+        pat_vars.append(var_name)
+        options.append(opts)
+
+    if not pat_vars:
+        return CollJagged(data_dict, offsets)
+
+    # check if there's room for all these combos
+    total_combos = 1
+    for r in [len(opts) for opts in options]:
+        total_combos *= r
+
+    if total_combos > n_events:
+        print(f"Number of desired fixed patterns: {total_combos} surpasses number of events: {n_events}")
+        return
+
+    # build all the combinations of max and min
+    for evt_idx in range(total_combos):
+        counter = evt_idx
+        start = offsets[evt_idx]
+        stop = offsets[evt_idx + 1]
+
+        for vn, opts in zip(pat_vars, options):
+            digit = counter % len(opts)
+            counter //= len(opts)
+
+            state = opts[digit]
+            if state == 0:
+                continue
+            elif state == -1:
+                data_dict[vn][start:stop] = var_config[vn]["min"]
+            elif state == 1:
+                data_dict[vn][start:stop] = var_config[vn]["max"]
+
+    return CollJagged(data_dict, offsets)
+        
+
 # get the data for a single event and return the SingleEvent structure
 def make_event_coll(coll, i_evt):
     # use the offsets to note where the event starts and ends
@@ -140,7 +214,7 @@ def load_config(path: str):
     with open(path, "r") as f:
         return yaml.safe_load(f)
 
-def HDF5toTestVector(conig_data: dict):
+def HDF5toTestVector(config_data: dict):
     """
     take a config file as input and convert the specified HDF5 file to test vectors
     """
@@ -157,6 +231,25 @@ def HDF5toTestVector(conig_data: dict):
     # get the variable info
     var_config = config_data["variables"]
     pack_order = config_data["packing_order"]
+    rand_config = config_data["random"]
+
+    if config_data["random"]["bool"]:
+        col_data = random_collection(rand_config, var_config, seed = rand_config["seed"])
+        if col_data is None:
+            print("[Error] Random collection generation failed")
+            return
+        
+        file_path = os.path.join(out_dir, "random.dat")
+        print("printing random test vectors")
+
+        # write the test vectors
+        with open(file_path, 'w') as f_out:
+            for i_evt in range(col_data.n_events()):
+                evt = make_event_coll(col_data, i_evt)
+                write_test_vectors(f_out, i_evt, evt, var_config, pack_order)
+        
+        return
+                
 
     # open the hdf5 file
     with h5py.File(h5_path, 'r') as h5:
