@@ -9,24 +9,52 @@ run:
 collections:
   - name: gFEXSRJ
     key: L1_gFexSRJetRoI
-    getter: gfex
+    # getter: gfex
     double_vars: [Et, Eta, Phi]
     int_vars: [EtIndex]
+    variables:
+      Et:
+        formula: "obj.et() / 1000.0"
+      Eta:
+        formula: "obj.eta()"
+      Phi:
+        formula: "obj.phi()"
 
   - name: jFEXSRJ
     key: L1_jFexSRJetRoI
-    getter: jfex
     double_vars: [Et, Eta, Phi]
     int_vars: [EtIndex]
+    variables:
+      Et:
+        formula: "obj.et() / 1000.0"
+      Eta:
+        formula: "obj.eta()"
+      Phi:
+        formula: "obj.phi()"
 
   - name: HLTJets
     key: HLT_AntiKt4EMTopoJets_subjesIS
-    getter: hlt_jet
     double_vars: [Et, Eta, Phi]
     int_vars: [EtIndex]
+    variables:
+      Et:
+        formula: "obj.e() / (1000.0 * math.cosh(obj.eta()))"
+      Eta:
+        formula: "obj.eta()"
+      Phi:
+        formula: "obj.phi()"
 
   - name: RecoAK10
     key: AntiKt10UFOCSSKJets
-    getter: reco_ak10
     double_vars: [Et, Eta, Phi, Mass]
     int_vars: [EtIndex]
+    variables:
+      Et:
+        formula: "obj.e() / (1000.0 * math.cosh(obj.eta()))"
+      Eta:
+        formula: "obj.eta()"
+      Phi:
+        formula: "obj.phi()"
+      Mass:
+        formula: "obj.m() / 1000.0"
+    

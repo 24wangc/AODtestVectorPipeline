@@ -47,7 +47,7 @@ def read_collection(h5_file, group_name, variable_config):
     data_dict = {}
     
     # read offsets which are stored in Et
-    offsets_path = f"{group_name}/Et/offsets"
+    offsets_path = f"{group_name}/offsets/data"
     
     # check if this path indeed exists
     if offsets_path in h5_file:
@@ -140,7 +140,22 @@ def random_collection(rand_config, var_config, seed):
                 data_dict[vn][start:stop] = var_config[vn]["max"]
 
     return CollJagged(data_dict, offsets)
-        
+
+# return a list of indices sorted in descending order by variable v
+def sort_indices(event, v):
+    n = event.size()
+    idx = np.arange(n, dtype=np.int64)
+
+    if not v:
+        return idx
+    
+    v_data = event.data[v]
+
+    # sort indices by v_data descending
+    order = np.argsort(v_data)[::-1]
+
+    return idx[order]
+    
 
 # get the data for a single event and return the SingleEvent structure
 def make_event_coll(coll, i_evt):
@@ -156,17 +171,14 @@ def make_event_coll(coll, i_evt):
     return SingleEvent(evt_data)
 
 # write the test vectors for one event with the specified selections
-def write_test_vectors(f_out, i_evt, event, var_config, order):
+def write_test_vectors(f_out, i_evt, event, var_config, order, sort_var):
     idx = 0
     
     # Iterate over particles in the event (looping over the arrays)
     n_particles = event.size()
+    indices = sort_indices(event, sort_var)
     
-    for i in range(n_particles):
-        
-        # check if 'et' exists and is < 0
-        if 'et' in event.data and event.data['et'][i] < 0:
-            continue
+    for i in indices:
 
         bin_strings = []
         packed_word = 0
@@ -232,6 +244,7 @@ def HDF5toTestVector(config_data: dict):
     var_config = config_data["variables"]
     pack_order = config_data["packing_order"]
     rand_config = config_data["random"]
+    sort_var = config_data["sort_by"]
 
     if config_data["random"]["bool"]:
         col_data = random_collection(rand_config, var_config, seed = rand_config["seed"])
@@ -246,7 +259,7 @@ def HDF5toTestVector(config_data: dict):
         with open(file_path, 'w') as f_out:
             for i_evt in range(col_data.n_events()):
                 evt = make_event_coll(col_data, i_evt)
-                write_test_vectors(f_out, i_evt, evt, var_config, pack_order)
+                write_test_vectors(f_out, i_evt, evt, var_config, pack_order, sort_var)
         
         return
                 
@@ -269,7 +282,7 @@ def HDF5toTestVector(config_data: dict):
             with open(full_out_path, 'w') as f_out:
                 for i_evt in range(col_data.n_events()):
                     evt = make_event_coll(col_data, i_evt)
-                    write_test_vectors(f_out, i_evt, evt, var_config, pack_order)
+                    write_test_vectors(f_out, i_evt, evt, var_config, pack_order, sort_var)
 
 config_data = load_config("/home/crystalwang/AODtestVectorPipeline/HDF5toTestVector/config.yaml")
 HDF5toTestVector(config_data)

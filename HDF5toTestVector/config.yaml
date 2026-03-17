@@ -4,10 +4,11 @@ io:
   # the directory that the test vectors will be generated to
   output_base_dir: "/data/crystalwang/testVectorPipeline/testData/testVectorsStep2/"
 
+# configure the generation of random data
 random:
-  bool: true
-  n: 30
-  num_particles: 3
+  bool: false
+  n: 30 # number of events
+  num_particles: 3 # number of vectors per event
   seed: 12345
 
 variables:
@@ -16,25 +17,26 @@ variables:
     bits: 13
     min: 0.0
     max: 1024.0
-    fixed: 0 # choose fixed options for pseudo random generation: -1 (none) 0 (vector with all zeros) 1 (vector with all ones) 2 (both all ones and all zero)
+    fixed: -1 # choose fixed options for pseudo random generation: -1 (none) 0 (vector with all zeros) 1 (vector with all ones) 2 (both all ones and all zero)
 
   eta:
     hdf5_key: "Eta"
     bits: 8
     min: -5.0
     max: 5.0
-    fixed: 1
+    fixed: -1
 
   phi:
     hdf5_key: "Phi"
     bits: 6
     min: -3.2
     max: 3.2
-    fixed: 2
+    fixed: -1
 
 # Order of variables in the binary string and hex word (MSB -> LSB)
 # Example: Et | Eta | Phi
 packing_order: ["et", "eta", "phi"]
+sort_by: "et" # variable to sort the data within each event by; otherwise FALSE
 
 # make sure this matches with the config file in first step 
 collections:

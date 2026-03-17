@@ -1,8 +1,7 @@
 """
 This is the python version of the AOD to HDF5 conversion script with a connected configuration file
 (config.yaml) which allows for user customization of collections, variables, files, and number of events
-Note: collections MUST store Et data
-This is a current functional version 01/22/2026.
+This is a current functional version 03/17/2026.
 """
 
 import numpy as np
@@ -16,6 +15,12 @@ import yaml
 ROOT.xAOD.Init() # Initialize the xAOD infrastructure
 ROOT.gSystem.Load("libxAODRootAccess")
 
+SAFE_GLOBALS = {
+    "__builtins__": {},
+    "math": math,
+}
+
+'''
 # define the getter functions
 def get_gfex(obj, v: str) -> float:
     if v == "Et":
@@ -26,7 +31,6 @@ def get_gfex(obj, v: str) -> float:
         return obj.phi()
     raise RuntimeError(f"gFEX unknown var: {v}")
 
-
 def get_hlt_jet(obj, v: str) -> float:
     if v == "Et":
         return obj.e() / (1000.0 * math.cosh(obj.eta()))
@@ -35,7 +39,6 @@ def get_hlt_jet(obj, v: str) -> float:
     if v == "Phi":
         return obj.phi()
     raise RuntimeError(f"HLT unknown var: {v}")
-
 
 def get_reco_ak10(obj, v: str) -> float:
     if v == "Et":
@@ -64,13 +67,35 @@ GETTERS = {
     "reco_ak10": get_reco_ak10,
     "jfex": get_jfex
 }
+'''
+
+def make_getter(variable_specs):
+    def getter(obj, v):
+        if v not in variable_specs:
+            raise RuntimeError(f"Unknown variable '{v}' in config")
+
+        spec = variable_specs[v]
+
+        if "formula" not in spec:
+            raise RuntimeError(f"Variable '{v}' is missing a formula")
+
+        formula = spec["formula"]
+
+        try:
+            return float(eval(formula, SAFE_GLOBALS, {"obj": obj}))
+        except Exception as e:
+            raise RuntimeError(
+                f"Error evaluating formula for variable '{v}': {formula}\n{e}"
+            )
+
+    return getter
 
 """
 Create the offsets class to deal with jagged arrays
 """
 @dataclass
 class JaggedOffsets:
-    offsets: list[int] = field(default_factory=list)
+    offsets: list[int] = field(default_factory=lambda: [0])
     
     def endEvent(self, currentSize: int):
         self.offsets.append(currentSize)
@@ -102,6 +127,16 @@ class JetCollection:
         self.kinematics = {v: [] for v in self.double_vars}
         self.indices = {v: [] for v in self.int_vars}
 
+    # function to track the end of events by checking the length of any variable's data
+    def current_size(self) -> int:
+        # prefer any double var that exists
+        for v in self.double_vars:
+            return len(self.kinematics[v])
+        # otherwise fall back to any int var
+        for v in self.int_vars:
+            return len(self.indices[v])
+        return 0
+
 ''' fill the collection of one event into the corresponding JetCollection
 collection is the container retrieved from the actual AOD file itself
 take as parameters the collection, the JetCollection, and the functions to retrieve the desired variables
@@ -109,13 +144,13 @@ take as parameters the collection, the JetCollection, and the functions to retri
 def fillJetCollectionOneEvent(collection, jc:JetCollection, getVar):
     # check if collection exists
     if collection is None:
-        jc.offsets.endEvent(len(jc.kinematics["Et"]))
+        jc.offsets.endEvent(jc.current_size())
         return
 
     # loop through the collection
     for i, obj in enumerate(collection):
         # store the index in jc
-        jc.indices["EtIndex"].append(i)
+        jc.indices["EtIndex"].append(i) # TODO: still EtIndex requirement
 
         # store data for each kin var
         for v in jc.double_vars:
@@ -123,7 +158,7 @@ def fillJetCollectionOneEvent(collection, jc:JetCollection, getVar):
             jc.kinematics[v].append(float(getVar(obj, v)))
 
     # mark the end of event in offsets
-    jc.offsets.endEvent(len(jc.kinematics["Et"]))
+    jc.offsets.endEvent(jc.current_size())
 
 # function for retrieving the collection from the event and filling it to the jetCollection structure
 def retrieveAndFill(event, key, jc, getVar, container_type = None):
@@ -146,8 +181,8 @@ def write_jet_collections(h5, jc:JetCollection):
 
     # create the offsets group
     create_group(h5, base)
-    create_group(h5, f"{base}/Et")
-    write_vector(h5, f"{base}/Et/offsets", jc.offsets.offsets)
+    create_group(h5, f"{base}/offsets")
+    write_vector(h5, f"{base}/offsets/data", jc.offsets.offsets)
 
     # fill vector data
     for vname in jc.double_vars:
@@ -193,6 +228,7 @@ def build_collections(config_data: dict):
 
     # loop through the collections in the configuration file
     for c in config_data["collections"]:
+        '''
         getter_name = c["getter"]
         
         # check if the getter_name is in the registry
@@ -200,10 +236,7 @@ def build_collections(config_data: dict):
             raise RuntimeError(
                 f"Unknown getter '{getter_name}'. Allowed: {list(GETTERS.keys())}"
             )
-        if "Et" not in c.get("double_vars"):
-            raise RuntimeError(
-                f"{c['name']} must include 'Et' in double vars (needed to store offsets)"
-            )
+        '''
         
         # load the information into the jetcollection
         jc = JetCollection(
@@ -211,8 +244,8 @@ def build_collections(config_data: dict):
             double_vars = c.get("double_vars"),
             int_vars = c.get("int_vars")
         )
-        
-        collectionInfo.append((jc, c["key"], GETTERS[getter_name]))
+        getter = make_getter(c["variables"])
+        collectionInfo.append((jc, c["key"], getter))
 
         # returns the jetcollection objects, their keys, and their respective getter functions
     return collectionInfo

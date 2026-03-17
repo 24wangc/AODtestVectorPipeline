@@ -1,5 +1,5 @@
 /**
-This is the current working version of AOD to HDF5. Employes templated functions and requires only changes in lines 281 and 307
+This is the current working version of AOD to HDF5. Employs templated functions and requires only changes in lines 281 and 307
 to customize collections
 12/26/2025
  */

@@ -42,7 +42,7 @@ This produces intermediate HDF5 files.
 Directory: AODtoHDF5configurable/
 
 Edit config.yaml with desired collections, variables, and getter functions
-Note: all collections *must* have Et as a double_variable for storage of offsets
+
 run in terminal
 ```
 python3 pipelineStep1.py
@@ -62,7 +62,10 @@ This produces the final test vector files.
 Files: HDF5toTestVector/config.yaml and HDF5toTestVector/HDF5toTestVector.py
 
 Edit config.yaml with desired input and output files, variables (bit length, range, packing order), and collections.
+
 Random data options: set random bool = true to generate random data following the variable specifications. Fixed edge case data can also be generated with the "fixed" option under each variable. Setting fixed = 0 will give edge cases where that variable is all zeros, fixed = 1 for all ones, and fixed = 2 for both all zeros and all ones.
+
+Sorting option: choose a variable to sort the data from each event by with the "sort_by" option. Set sort_by = false to forgo any sorting.
 
 ```
 python3 HDF5toTestVector.py
